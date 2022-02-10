@@ -22,7 +22,7 @@
 #   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #   SOFTWARE.
 
-#   This is an extremely simplistic attempt at managing logging to multiple sinks 
+#   This is an extremely simplistic attempt at managing logging to multiple sinks
 #   at the same time. You would probably be better off with another python logging
 #   library like loguru.
 
@@ -33,7 +33,7 @@ from email.mime.text import MIMEText
 from enum import IntEnum
 from sys import stdout
 
-class FileLogger:
+class File_Logger:
 
     """ Class for logging to files. Handles rotation of logfiles if required """
 
@@ -79,7 +79,7 @@ class FileLogger:
             self.logger.setLevel(self.min_log_level)
             self.log_handler.setFormatter(self.log_formatter)
 
-class MailLogger:
+class Mail_Logger:
 
     """ Class to send logs via email """
 
@@ -124,7 +124,7 @@ class MailLogger:
             self.body = ""
             self.initialised = False
 
-class StdOutLogger:
+class StdOut_Logger:
 
     """ Class to send logs to stdout  """
 
@@ -149,10 +149,10 @@ class Loglevel(IntEnum):
 
     NOTVALID = -1
 
-class LoggerManager:
+class Logger_Manager:
 
-    """ 
-    Main interface for LoggerManager. LoggerManager can log to stdout, automatically rotated
+    """
+    Main interface for Logger_Manager. Logger_Manager can log to stdout, automatically rotated
     file and mail at the same time. This was originally designed for use in daemon type tasks
     Where a log of what happened needs to be kept, and also potentially mailed once the task is
     done
@@ -160,26 +160,26 @@ class LoggerManager:
 
     def __init__(self, min_log_level = Loglevel.INFO):
 
-        self.logger = logging.getLogger("LoggerManager")
+        self.logger = logging.getLogger("Logger_Manager")
         self.min_log_level = min_log_level
 
-        self.file_logger = None
+        self.File_Logger = None
         self.stdout_logger = None
         self.mail_logger = None
 
     def setup_logfile(self, logfile, num_rotated, min_log_level = Loglevel.NOTVALID):
 
-        """ Setup and enable file logging """ 
+        """ Setup and enable file logging """
 
         # TODO - should check for existance of log path etc here.
 
         if min_log_level == Loglevel.NOTVALID:
             min_log_level = self.min_log_level
 
-        if self.file_logger is None:
-            self.file_logger = FileLogger(self.logger, min_log_level)
+        if self.File_Logger is None:
+            self.File_Logger = File_Logger(self.logger, min_log_level)
 
-        self.file_logger.setup(logfile, num_rotated)
+        self.File_Logger.setup(logfile, num_rotated)
 
     def setup_mail(self, server, from_email, to_email, subject,
                    min_log_level = Loglevel.NOTVALID):
@@ -190,7 +190,7 @@ class LoggerManager:
             min_log_level = self.min_log_level
 
         if self.mail_logger is None:
-            self.mail_logger = MailLogger(min_log_level)
+            self.mail_logger = Mail_Logger(min_log_level)
 
         self.mail_logger.setup(server, from_email, to_email, subject)
 
@@ -202,11 +202,11 @@ class LoggerManager:
             min_log_level = self.min_log_level
 
         if self.stdout_logger is None:
-            self.stdout_logger = StdOutLogger(self.logger, min_log_level)
+            self.stdout_logger = StdOut_Logger(self.logger, min_log_level)
 
     def log(self, log_level, message):
 
-        """ The main log function, this will go to all registered components """ 
+        """ The main log function, this will go to all registered components """
 
         if self.mail_logger is not None:
             self.mail_logger.log(log_level, message)
@@ -216,9 +216,9 @@ class LoggerManager:
 
     def send_mail(self):
 
-        """ 
+        """
         Call when the accumulated logs need to be sent via mail, does nothing
-        if mail logger not setup 
+        if mail logger not setup
         """
         if self.mail_logger is not None:
             self.mail_logger.Send()
